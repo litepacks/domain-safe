@@ -1,0 +1,40 @@
+{
+  "name": "domain-safe-monorepo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm --filter @domain-safe/core --filter @domain-safe/sources --filter domain-safe run test",
+    "test:watch": "vitest",
+    "test:coverage": "pnpm --filter @domain-safe/core run test -- --coverage",
+    "benchmark": "pnpm --filter @domain-safe/benchmark run benchmark",
+    "typecheck": "turbo run typecheck",
+    "version:patch": "pnpm --filter @domain-safe/core --filter @domain-safe/sources --filter domain-safe exec npm version patch --no-git-tag-version",
+    "version:minor": "pnpm --filter @domain-safe/core --filter @domain-safe/sources --filter domain-safe exec npm version minor --no-git-tag-version",
+    "version:major": "pnpm --filter @domain-safe/core --filter @domain-safe/sources --filter domain-safe exec npm version major --no-git-tag-version",
+    "publish:dry-run": "pnpm build && pnpm -r --filter @domain-safe/core --filter @domain-safe/sources --filter domain-safe publish --dry-run --access public --no-git-checks",
+    "publish:all": "pnpm build && pnpm -r --filter @domain-safe/core --filter @domain-safe/sources --filter domain-safe publish --access public --no-git-checks",
+    "publish:core": "pnpm build && pnpm --filter @domain-safe/core publish --access public --no-git-checks",
+    "publish:sources": "pnpm build && pnpm --filter @domain-safe/sources publish --access public --no-git-checks",
+    "publish:cli": "pnpm build && pnpm --filter domain-safe publish --access public --no-git-checks"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.2",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
