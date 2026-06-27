@@ -68,6 +68,20 @@ describe("binary index", () => {
     expect(index.lookup("evil.com")).toBe("evil.com");
     expect(index.metadata.sources).toEqual(["test"]);
   });
+
+  it("handles javascript prototype properties as domain names", () => {
+    const specialDomains = ["__proto__", "toString", "valueOf", "__proto__.evil.com"];
+    const buffer = buildIndexBuffer({
+      domains: specialDomains,
+      sources: ["test"],
+      useBloom: true,
+    });
+    const index = DomainIndex.fromBuffer(buffer);
+    expect(index.domainCount).toBe(specialDomains.length);
+    expect(index.lookup("__proto__")).toBe("__proto__");
+    expect(index.lookup("toString")).toBe("toString");
+    expect(index.lookup("__proto__.evil.com")).toBe("__proto__.evil.com");
+  });
 });
 
 describe("DomainSafe", () => {

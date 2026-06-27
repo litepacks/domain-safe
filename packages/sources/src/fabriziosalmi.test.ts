@@ -20,7 +20,7 @@ phishing-site.net
 malware.org
     `.trim());
 
-    const entries = source.parse(raw);
+    const entries = [...source.parse(raw)];
     expect(entries).toHaveLength(3);
     expect(entries[0]!.domain).toBe("evil.com");
   });

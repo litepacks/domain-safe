@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { writeFile, rename } from "node:fs/promises";
 import { dirname } from "node:path";
 import { buildIndexBuffer } from "@domain-safe/core";
 import { getSource } from "@domain-safe/sources";
@@ -20,12 +20,16 @@ export async function runUpdate(config: DomainSafeConfig): Promise<UpdateResult>
   let rawEntries = 0;
 
   for (const sourceId of config.sources) {
+    console.log(`[debug] Starting download for source: ${sourceId}...`);
     const source = getSource(sourceId);
     const raw = await source.download();
+    console.log(`[debug] Downloaded ${raw.length.toLocaleString()} bytes. Parsing...`);
     const entries = source.parse(raw);
-    rawEntries += entries.length;
+    console.log(`[debug] Parsing, normalizing, and inserting entries...`);
+    let sourceEntriesCount = 0;
 
     for (const entry of entries) {
+      sourceEntriesCount++;
       const normalized = source.normalize(entry);
       if (!normalized) continue;
       domainSet.add(normalized.domain);
@@ -33,11 +37,15 @@ export async function runUpdate(config: DomainSafeConfig): Promise<UpdateResult>
         reasons[normalized.domain] = normalized.reason;
       }
     }
+    rawEntries += sourceEntriesCount;
+    console.log(`[debug] Processed ${sourceEntriesCount.toLocaleString()} raw entries.`);
+    console.log(`[debug] Current unique domains: ${domainSet.size.toLocaleString()}`);
   }
 
   const domains = [...domainSet];
   const durationMs = Date.now() - start;
 
+  console.log(`[debug] Building binary index buffer for ${domains.length.toLocaleString()} domains...`);
   const buffer = buildIndexBuffer({
     domains,
     sources: config.sources,

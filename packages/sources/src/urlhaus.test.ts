@@ -17,7 +17,7 @@ describe("URLHausSource", () => {
 127.0.0.1\tsub.bad.net
     `.trim());
 
-    const entries = source.parse(raw);
+    const entries = [...source.parse(raw)];
     expect(entries).toHaveLength(2);
     expect(entries[0]!.domain).toBe("malware.example.com");
     expect(entries[0]!.reason).toBe("malware");

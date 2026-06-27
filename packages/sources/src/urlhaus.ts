@@ -34,27 +34,43 @@ export class URLHausSource implements SourceAdapter {
     return new Uint8Array(await response.arrayBuffer());
   }
 
-  parse(raw: Uint8Array): RawEntry[] {
+  *parse(raw: Uint8Array): Generator<RawEntry, void, unknown> {
     const text = new TextDecoder().decode(raw);
-    const entries: RawEntry[] = [];
+    let start = 0;
+    let lineNum = 1;
+    while (start < text.length) {
+      let end = text.indexOf("\n", start);
+      if (end === -1) {
+        end = text.length;
+      }
+      const line = text.slice(start, end);
+      start = end + 1;
 
-    for (const [index, line] of text.split("\n").entries()) {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-
-      const parts = trimmed.split(/\s+/);
-      const domain = parts.length >= 2 ? parts[1]! : parts[0]!;
-      if (!domain || domain === "127.0.0.1" || domain === "0.0.0.0") continue;
-
-      entries.push({
-        domain,
-        source: this.id,
-        reason: "malware",
-        line: index + 1,
-      });
+      if (trimmed && !trimmed.startsWith("#")) {
+        let firstSpace = -1;
+        for (let i = 0; i < trimmed.length; i++) {
+          const char = trimmed[i];
+          if (char === " " || char === "\t" || char === "\r") {
+            firstSpace = i;
+            break;
+          }
+        }
+        let domain = trimmed;
+        if (firstSpace !== -1) {
+          domain = trimmed.slice(firstSpace).trim();
+        }
+        if (domain && domain !== "127.0.0.1" && domain !== "0.0.0.0") {
+          yield {
+            domain,
+            source: this.id,
+            reason: "malware",
+            line: lineNum,
+          };
+        }
+      }
+      lineNum++;
     }
-
-    return entries;
   }
 
   normalize(entry: RawEntry) {

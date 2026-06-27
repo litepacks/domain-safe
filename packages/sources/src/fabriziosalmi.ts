@@ -39,25 +39,36 @@ export class FabrizioSalmiSource implements SourceAdapter {
     return new Uint8Array(buffer);
   }
 
-  parse(raw: Uint8Array): RawEntry[] {
+  *parse(raw: Uint8Array): Generator<RawEntry, void, unknown> {
     const text = new TextDecoder().decode(raw);
-    const entries: RawEntry[] = [];
+    let start = 0;
+    let lineNum = 1;
+    while (start < text.length) {
+      let end = text.indexOf("\n", start);
+      if (end === -1) {
+        end = text.length;
+      }
+      const line = text.slice(start, end);
+      start = end + 1;
 
-    for (const [index, line] of text.split("\n").entries()) {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
+      if (!trimmed || trimmed.startsWith("#")) {
+        lineNum++;
+        continue;
+      }
 
-      const domain = trimmed.split(/\s+/)[0]?.replace(/^local=:/, "") ?? "";
-      if (!domain) continue;
-
-      entries.push({
-        domain,
-        source: this.id,
-        line: index + 1,
-      });
+      const match = trimmed.match(/^\S+/);
+      const domainRaw = match ? match[0]! : "";
+      const domain = domainRaw.replace(/^local=:/, "");
+      if (domain) {
+        yield {
+          domain,
+          source: this.id,
+          line: lineNum,
+        };
+      }
+      lineNum++;
     }
-
-    return entries;
   }
 
   normalize(entry: RawEntry) {

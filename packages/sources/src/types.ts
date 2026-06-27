@@ -30,6 +30,6 @@ export interface SourceAdapter {
   readonly id: string;
   metadata(): SourceMetadata;
   download(ctx?: DownloadContext): Promise<Uint8Array>;
-  parse(raw: Uint8Array): RawEntry[];
+  parse(raw: Uint8Array): Iterable<RawEntry>;
   normalize(entry: RawEntry): NormalizedEntry | null;
 }

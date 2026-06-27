@@ -20,7 +20,9 @@ export interface BuildIndexOptions {
 
 export function buildIndexBuffer(options: BuildIndexOptions): Uint8Array {
   const { domains, sources, reasons, useBloom = true } = options;
+  console.log(`[debug] Sorting ${domains.length.toLocaleString()} domains...`);
   const sortedDomains = [...domains].sort();
+  console.log(`[debug] Building trie from sorted domains...`);
   const { trie, stringPool } = buildTrieFromDomains(sortedDomains);
 
   const meta: IndexMetadata = {
@@ -38,6 +40,7 @@ export function buildIndexBuffer(options: BuildIndexOptions): Uint8Array {
   let bloomBytes: Uint8Array | null = null;
 
   if (useBloom && sortedDomains.length > 0) {
+    console.log(`[debug] Building Bloom filter for ${sortedDomains.length.toLocaleString()} domains...`);
     bloomBytes = buildBloomFilter(sortedDomains).toBuffer();
   }
 

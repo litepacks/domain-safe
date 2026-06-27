@@ -16,6 +16,28 @@ export function normalizeDomain(input: string, options: NormalizeOptions = {}): 
     return null;
   }
 
+  // Fast path for standard alphanumeric ASCII domains
+  if (/^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(input)) {
+    const domain = input.toLowerCase();
+    if (domain.length <= MAX_DOMAIN_LENGTH) {
+      let start = 0;
+      let ok = true;
+      while (start < domain.length) {
+        const nextDot = domain.indexOf(".", start);
+        const end = nextDot === -1 ? domain.length : nextDot;
+        const len = end - start;
+        if (len === 0 || len > 63) {
+          ok = false;
+          break;
+        }
+        start = end + 1;
+      }
+      if (ok) {
+        return options.stripWww && domain.startsWith("www.") ? domain.slice(4) : domain;
+      }
+    }
+  }
+
   let domain = input.trim().toLowerCase();
 
   if (domain.endsWith(".")) {

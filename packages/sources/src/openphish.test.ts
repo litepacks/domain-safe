@@ -16,7 +16,7 @@ https://phishing.example.com/login
 http://evil-bank.net/verify
     `.trim());
 
-    const entries = source.parse(raw);
+    const entries = [...source.parse(raw)];
     expect(entries).toHaveLength(2);
     expect(entries[0]!.domain).toBe("https://phishing.example.com/login");
     expect(entries[0]!.reason).toBe("phishing");

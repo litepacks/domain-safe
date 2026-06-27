@@ -26,7 +26,7 @@ export class BloomFilter {
     return filter;
   }
 
-  private hashes(key: string): [number, number] {
+  add(key: string): void {
     let h1 = 0x811c9dc5;
     let h2 = 0;
     for (let i = 0; i < key.length; i++) {
@@ -34,11 +34,9 @@ export class BloomFilter {
       h1 = Math.imul(h1 ^ c, 0x01000193);
       h2 = Math.imul(h2 ^ c, 0x01000193);
     }
-    return [h1 >>> 0, h2 >>> 0];
-  }
+    h1 = h1 >>> 0;
+    h2 = h2 >>> 0;
 
-  add(key: string): void {
-    const [h1, h2] = this.hashes(key);
     for (let i = 0; i < this.hashCount; i++) {
       const idx = Math.abs((h1 + i * h2) % this.bitCount);
       this.bits[idx >> 3]! |= 1 << (idx & 7);
@@ -46,7 +44,16 @@ export class BloomFilter {
   }
 
   mightContain(key: string): boolean {
-    const [h1, h2] = this.hashes(key);
+    let h1 = 0x811c9dc5;
+    let h2 = 0;
+    for (let i = 0; i < key.length; i++) {
+      const c = key.charCodeAt(i);
+      h1 = Math.imul(h1 ^ c, 0x01000193);
+      h2 = Math.imul(h2 ^ c, 0x01000193);
+    }
+    h1 = h1 >>> 0;
+    h2 = h2 >>> 0;
+
     for (let i = 0; i < this.hashCount; i++) {
       const idx = Math.abs((h1 + i * h2) % this.bitCount);
       if ((this.bits[idx >> 3]! & (1 << (idx & 7))) === 0) {
@@ -62,14 +69,16 @@ export class BloomFilter {
 
   /** Check all suffixes of a domain (reverse label walk) */
   mightContainSuffix(domain: string): boolean {
-    const labels = domain.split(".");
-    for (let start = 0; start < labels.length - 1; start++) {
-      const suffix = labels.slice(start).join(".");
-      if (this.mightContain(suffix)) {
+    if (this.mightContain(domain)) {
+      return true;
+    }
+    let index = -1;
+    while ((index = domain.indexOf(".", index + 1)) !== -1) {
+      if (this.mightContain(domain.slice(index + 1))) {
         return true;
       }
     }
-    return this.mightContain(domain);
+    return false;
   }
 }
 
@@ -83,9 +92,9 @@ export function buildBloomFilter(domains: string[]): BloomFilter {
   const filter = new BloomFilter(bitCount);
   for (const domain of domains) {
     filter.add(domain);
-    const labels = domain.split(".");
-    for (let i = 1; i < labels.length; i++) {
-      filter.add(labels.slice(i).join("."));
+    let index = -1;
+    while ((index = domain.indexOf(".", index + 1)) !== -1) {
+      filter.add(domain.slice(index + 1));
     }
   }
   return filter;

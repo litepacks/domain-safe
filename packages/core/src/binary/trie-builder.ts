@@ -1,20 +1,20 @@
 interface TrieNode {
   terminal: boolean;
-  children: Map<string, TrieNode>;
+  children: Record<string, TrieNode>;
 }
 
 function createNode(): TrieNode {
-  return { terminal: false, children: new Map() };
+  return { terminal: false, children: Object.create(null) };
 }
 
 export function insertDomain(root: TrieNode, domain: string): void {
   const labels = domain.split(".").reverse();
   let node = root;
   for (const label of labels) {
-    let child = node.children.get(label);
+    let child = node.children[label];
     if (!child) {
       child = createNode();
-      node.children.set(label, child);
+      node.children[label] = child;
     }
     node = child;
   }
@@ -30,12 +30,14 @@ export function serializeTrie(root: TrieNode): SerializedTrie {
   const stringChunks: string[] = [];
   const stringOffsets = new Map<string, number>();
 
+  let currentOffset = 0;
   function intern(label: string): number {
     let offset = stringOffsets.get(label);
     if (offset !== undefined) return offset;
-    offset = stringChunks.reduce((acc, s) => acc + s.length, 0);
+    offset = currentOffset;
     stringOffsets.set(label, offset);
     stringChunks.push(label);
+    currentOffset += label.length;
     return offset;
   }
 
@@ -55,7 +57,7 @@ export function serializeTrie(root: TrieNode): SerializedTrie {
       childIndex: number;
     }> = [];
 
-    for (const [label, child] of node.children) {
+    for (const [label, child] of Object.entries(node.children)) {
       children.push({
         label,
         labelOffset: intern(label),

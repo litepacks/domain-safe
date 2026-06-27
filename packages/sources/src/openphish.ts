@@ -36,23 +36,29 @@ export class OpenPhishSource implements SourceAdapter {
     return new Uint8Array(await response.arrayBuffer());
   }
 
-  parse(raw: Uint8Array): RawEntry[] {
+  *parse(raw: Uint8Array): Generator<RawEntry, void, unknown> {
     const text = new TextDecoder().decode(raw);
-    const entries: RawEntry[] = [];
+    let start = 0;
+    let lineNum = 1;
+    while (start < text.length) {
+      let end = text.indexOf("\n", start);
+      if (end === -1) {
+        end = text.length;
+      }
+      const line = text.slice(start, end);
+      start = end + 1;
 
-    for (const [index, line] of text.split("\n").entries()) {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-
-      entries.push({
-        domain: trimmed,
-        source: this.id,
-        reason: "phishing",
-        line: index + 1,
-      });
+      if (trimmed && !trimmed.startsWith("#")) {
+        yield {
+          domain: trimmed,
+          source: this.id,
+          reason: "phishing",
+          line: lineNum,
+        };
+      }
+      lineNum++;
     }
-
-    return entries;
   }
 
   normalize(entry: RawEntry) {
