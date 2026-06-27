@@ -1,6 +1,6 @@
 {
   "name": "@domain-safe/sources",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Downloadable blacklist source adapters for domain-safe CLI",
   "license": "MIT",
   "type": "module",
@@ -19,7 +19,9 @@
       }
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=18"
   },
