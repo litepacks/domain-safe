@@ -1,6 +1,6 @@
 {
   "name": "@domain-safe/sources",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Downloadable blacklist source adapters for domain-safe CLI",
   "license": "MIT",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "domain-safe",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CLI for offline domain reputation checks using downloadable blacklists",
   "license": "MIT",
   "type": "module",
